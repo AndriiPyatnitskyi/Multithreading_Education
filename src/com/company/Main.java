@@ -2,79 +2,64 @@ package com.company;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
-        Resources resources = new Resources();
+    public static void main(String[] args) {
+
         MyThread1 thread1 = new MyThread1();
         MyThread2 thread2 = new MyThread2();
-        thread1.setResources(resources);
-        thread2.setResources(resources);
+
+
         thread1.start();
         thread2.start();
-
-//        Thread thread1 = new MyThread();
-//        //Устанавливаем приоритет потока
-//        thread1.setPriority(Thread.MAX_PRIORITY);
-//
-//        thread.start();
-//        //Поток main и остальные потоки ждут, пока поток thread не закончит полностью свою работу.
-//        thread.join();
-//
-//        //Сообщаем что данный поток может на время уйти в пул потоков
-//        Thread.yield();
-//        thread1.start();
-
     }
-
-
 
 }
 
 class MyThread1 extends Thread {
-    Resources resources;
-
-    public void setResources(Resources resources) {
-        this.resources = resources;
-    }
+//    Resources resources;
+//
+//    public void setResources(Resources resources) {
+//        this.resources = resources;
+//    }
 
     @Override
     public void run() {
         for (int i = 0; i < 500; i++) {
-            resources.increaseI();
+            Resources.increaseI();
             System.out.println(">>>     " + Thread.currentThread().getName());
-            System.out.println(">>>     " + resources.i);
+            System.out.println(">>>     " + Resources.i);
         }
     }
 }
-class MyThread2 extends Thread {
-    Resources resources;
 
-    public void setResources(Resources resources) {
-        this.resources = resources;
-    }
+class MyThread2 extends Thread {
 
     @Override
     public void run() {
         for (int i = 0; i < 5000; i++) {
-            resources.increaseI();
+            Resources.increaseI();
             System.out.println(Thread.currentThread().getName());
-            System.out.println(resources.i);
+            System.out.println(Resources.i);
         }
     }
 }
 
-class Resources{
-    int i;
+class Resources {
+    static int i;
 
-    //Блокирует вызов метода другим потоком, пока данный поток не отрабоатет полностью метод
-    //Также можно блокировать чать кодав synchronized блоке
-    public synchronized void increaseI(){
-        int i = this.i;
+    //Static synchronized
+    public synchronized static void increaseI() {
+        //Static synchronized block
+        synchronized (Resources.class){
 
-        if (Thread.currentThread().getName().equals("Thread-1")){
+        }
+
+        int i = Resources.i;
+
+        if (Thread.currentThread().getName().equals("Thread-1")) {
             Thread.yield();
         }
         i++;
-        this.i = i;
+        Resources.i = i;
     }
 }
 
