@@ -4,7 +4,7 @@ import sun.awt.windows.ThemeReader;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         ResourceA resourceA = new ResourceA();
         ResourceB resourceB = new ResourceB();
 
@@ -14,7 +14,11 @@ public class Main {
             @Override
             public void run() {
                 System.out.println("Стартуем " + Thread.currentThread().getName() + " поток");
-                resourceB.startBlock();
+                try {
+                    resourceB.startBlock();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
             }
         }).start();
@@ -29,8 +33,9 @@ public class Main {
             this.resourceB = resourceB;
         }
 
-        public synchronized void startBlock() {
-            System.out.println(this.getClass().getName() + "    >>> startBlock");
+        public synchronized void startBlock() throws InterruptedException {
+            System.out.println(this.getClass().getSimpleName() + "    >>> startBlock.   В потоке " + Thread.currentThread().getName());
+            Thread.sleep(1000);
             resourceB.methodB();
         }
 
@@ -46,8 +51,9 @@ public class Main {
             this.resourceA = resourceA;
         }
 
-        public synchronized void startBlock() {
-            System.out.println(this.getClass().getName() + "    >>> startBlock");
+        public synchronized void startBlock() throws InterruptedException {
+            System.out.println(this.getClass().getSimpleName() + "    >>> startBlock.   В потоке " + Thread.currentThread().getName());
+            Thread.sleep(1000);
             resourceA.methodA();
         }
 
