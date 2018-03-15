@@ -24,15 +24,12 @@ public class Main {
     static class MyThreadReadable extends Thread {
         @Override
         public void run() {
-            int localVar = i;
+            int localVar = 0;
             while (localVar < 5){
+                localVar = i;
                 if(localVar != i){
                     System.out.println("read: " + i);
                     localVar = i;
-                }
-                else {
-                    System.out.println("localVar: " + localVar);
-
                 }
             }
         }
