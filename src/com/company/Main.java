@@ -1,66 +1,48 @@
 package com.company;
 
 public class Main {
-
+    static int i = 0;
     public static void main(String[] args) {
+        new MyThreadWritable().start();
+        new MyThreadReadable().start();
+    }
 
-        MyThread1 thread1 = new MyThread1();
-        MyThread2 thread2 = new MyThread2();
+    static class MyThreadWritable extends Thread {
+        @Override
+        public void run() {
+            while (i < 5){
+                System.out.println("increase: " + (++i));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
+    static class MyThreadReadable extends Thread {
+        @Override
+        public void run() {
+            int localVar = i;
+            while (localVar < 5){
+                if(localVar != i){
+                    System.out.println("read: " + i);
+                    localVar = i;
+                }
+                else {
+                    System.out.println("localVar: " + localVar);
 
-        thread1.start();
-        thread2.start();
+                }
+            }
+        }
     }
 
 }
 
-class MyThread1 extends Thread {
-//    Resources resources;
-//
-//    public void setResources(Resources resources) {
-//        this.resources = resources;
-//    }
 
-    @Override
-    public void run() {
-        for (int i = 0; i < 500; i++) {
-            Resources.increaseI();
-            System.out.println(">>>     " + Thread.currentThread().getName());
-            System.out.println(">>>     " + Resources.i);
-        }
-    }
-}
 
-class MyThread2 extends Thread {
 
-    @Override
-    public void run() {
-        for (int i = 0; i < 5000; i++) {
-            Resources.increaseI();
-            System.out.println(Thread.currentThread().getName());
-            System.out.println(Resources.i);
-        }
-    }
-}
 
-class Resources {
-    static int i;
-
-    //Static synchronized
-    public synchronized static void increaseI() {
-        //Static synchronized block
-        synchronized (Resources.class){
-
-        }
-
-        int i = Resources.i;
-
-        if (Thread.currentThread().getName().equals("Thread-1")) {
-            Thread.yield();
-        }
-        i++;
-        Resources.i = i;
-    }
-}
 
 
