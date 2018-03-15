@@ -1,40 +1,25 @@
 package com.company;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Main {
-    static int i = 0;
-    public static void main(String[] args) {
-        new MyThreadWritable().start();
-        new MyThreadReadable().start();
+    static AtomicInteger atomicInteger = new AtomicInteger(0);
+
+    public static void main(String[] args) throws InterruptedException {
+        for (int j = 0; j < 1000; j++) {
+            new MyThread().start();
+        }
+        //засыпаем, чтоб потоки со счетчиком успели до конца отрабоать
+        Thread.sleep(1000);
+        System.out.println(atomicInteger.get());
     }
 
-    static class MyThreadWritable extends Thread {
+    static class MyThread extends Thread {
         @Override
         public void run() {
-            while (i < 5){
-                System.out.println("increase: " + (++i));
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            atomicInteger.incrementAndGet();
         }
     }
-
-    static class MyThreadReadable extends Thread {
-        @Override
-        public void run() {
-            int localVar = 0;
-            while (localVar < 5){
-                localVar = i;
-                if(localVar != i){
-                    System.out.println("read: " + i);
-                    localVar = i;
-                }
-            }
-        }
-    }
-
 }
 
 
