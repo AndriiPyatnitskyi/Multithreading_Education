@@ -1,81 +1,55 @@
 package com.company;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
+
     public static void main(String[] args) {
-        Store store = new Store();
-        Producer producer = new Producer();
-        Consumer consumer = new Consumer();
-        producer.setStore(store);
-        consumer.setStore(store);
-        new Thread(producer).start();
-        new Thread(consumer).start();
+        Resources resources = new Resources();
+        MyThread thread1 = new MyThread(resources);
+        MyThread thread2 = new MyThread(resources);
+
+
+        thread1.start();
+        thread2.start();
     }
+
 }
 
-class Store {
-    List<Object> objectList = new ArrayList<>();
+class MyThread extends Thread {
+    Resources resources;
 
-    public synchronized void produce() throws InterruptedException {
-        while (objectList.isEmpty()){
-            System.out.println(Thread.currentThread().getName()+ " >>> produce method");
-            Object object = new Object();
-            objectList.add(object);
-            System.out.println("Produced: " + object);
-            notify();
-            Thread.sleep(1000);
-        }
-    }
-
-    public synchronized void get() throws InterruptedException {
-        while(!objectList.isEmpty()){
-            System.out.println(Thread.currentThread().getName() + " >>> consume method");
-            Object object = objectList.remove(0);
-            System.out.println("Consumed: " + object);
-        }
-        wait();
-        Thread.sleep(1000);
-
-    }
-}
-
-class Producer implements Runnable{
-    private Store store;
-
-    public void setStore(Store store) {
-        this.store = store;
+    public MyThread(Resources resources) {
+        this.resources = resources;
     }
 
     @Override
     public void run() {
-        while (true){
-            try {
-                store.produce();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for (int i = 0; i < 100; i++) {
+            resources.increaseI();
+            System.out.println(">>>     " + Thread.currentThread().getName());
+            System.out.println(">>>     " + resources.i);
         }
     }
 }
 
-class Consumer implements Runnable{
-    private Store store;
 
-    public void setStore(Store store) {
-        this.store = store;
-    }
+class Resources {
+    int i;
+    ReentrantLock reentrantlock = new ReentrantLock();
 
-    @Override
-    public void run() {
-        while (true){
-            try {
-                store.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    public void increaseI() {
+        reentrantlock.lock();
+        int i = this.i;
+
+        if (Thread.currentThread().getName().equals("Thread-1")) {
+            Thread.yield();
         }
+        i++;
+        this.i = i;
 
+        reentrantlock.unlock();
     }
 }
+
+
