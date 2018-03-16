@@ -1,13 +1,15 @@
 package com.company;
 
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
 
     public static void main(String[] args) {
-        Resources resources = new Resources();
-        MyThread thread1 = new MyThread(resources);
-        MyThread thread2 = new MyThread(resources);
+        Lock lock = new ReentrantLock();
+
+        MyThread1 thread1 = new MyThread1(lock);
+        MyThread2 thread2 = new MyThread2(lock);
 
 
         thread1.start();
@@ -16,39 +18,52 @@ public class Main {
 
 }
 
-class MyThread extends Thread {
-    Resources resources;
+class MyThread1 extends Thread {
 
-    public MyThread(Resources resources) {
-        this.resources = resources;
+    Lock lock;
+
+    public MyThread1(Lock lock) {
+        this.lock = lock;
     }
 
     @Override
     public void run() {
-        for (int i = 0; i < 100; i++) {
-            resources.increaseI();
-            System.out.println(">>>     " + Thread.currentThread().getName());
-            System.out.println(">>>     " + resources.i);
+        lock.lock();
+        System.out.println(getName() + " lock");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        lock.unlock();
+        System.out.println(getName() + " unlock");
+
+
     }
 }
 
+class MyThread2 extends Thread {
+    Lock lock;
 
-class Resources {
-    int i;
-    ReentrantLock reentrantlock = new ReentrantLock();
+    public MyThread2(Lock lock) {
+        this.lock = lock;
+    }
 
-    public void increaseI() {
-        reentrantlock.lock();
-        int i = this.i;
-
-        if (Thread.currentThread().getName().equals("Thread-1")) {
-            Thread.yield();
+    @Override
+    public void run() {
+        while (true) {
+            if (lock.tryLock()) {
+                System.out.println(getName() + "  get lock");
+            } else {
+                System.out.println(getName() + " can not get lock");
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-        i++;
-        this.i = i;
 
-        reentrantlock.unlock();
     }
 }
 
