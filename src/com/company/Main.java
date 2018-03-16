@@ -1,72 +1,81 @@
 package com.company;
 
-import sun.awt.windows.ThemeReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
-
-    public static void main(String[] args) throws InterruptedException {
-        ResourceA resourceA = new ResourceA();
-        ResourceB resourceB = new ResourceB();
-
-        resourceA.setResourceB(resourceB);
-        resourceB.setResourceA(resourceA);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Стартуем " + Thread.currentThread().getName() + " поток");
-                try {
-                    resourceB.startBlock();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
-        System.out.println("Стартуем " + Thread.currentThread().getName() + " поток");
-        resourceA.startBlock();
+    public static void main(String[] args) {
+        Store store = new Store();
+        Producer producer = new Producer();
+        Consumer consumer = new Consumer();
+        producer.setStore(store);
+        consumer.setStore(store);
+        new Thread(producer).start();
+        new Thread(consumer).start();
     }
+}
 
-    static class ResourceA {
-        ResourceB resourceB;
+class Store {
+    List<Object> objectList = new ArrayList<>();
 
-        public void setResourceB(ResourceB resourceB) {
-            this.resourceB = resourceB;
-        }
-
-        public synchronized void startBlock() throws InterruptedException {
-            System.out.println(this.getClass().getSimpleName() + "    >>> startBlock.   В потоке " + Thread.currentThread().getName());
+    public synchronized void produce() throws InterruptedException {
+        while (objectList.isEmpty()){
+            System.out.println(Thread.currentThread().getName()+ " >>> produce method");
+            Object object = new Object();
+            objectList.add(object);
+            System.out.println("Produced: " + object);
+            notify();
             Thread.sleep(1000);
-            resourceB.methodB();
-        }
-
-        public synchronized void methodA() {
-            System.out.println("methodA : вывод после блокировки");
         }
     }
 
-    static class ResourceB {
-        ResourceA resourceA;
-
-        public void setResourceA(ResourceA resourceA) {
-            this.resourceA = resourceA;
+    public synchronized void get() throws InterruptedException {
+        while(!objectList.isEmpty()){
+            System.out.println(Thread.currentThread().getName() + " >>> consume method");
+            Object object = objectList.remove(0);
+            System.out.println("Consumed: " + object);
         }
-
-        public synchronized void startBlock() throws InterruptedException {
-            System.out.println(this.getClass().getSimpleName() + "    >>> startBlock.   В потоке " + Thread.currentThread().getName());
-            Thread.sleep(1000);
-            resourceA.methodA();
-        }
-
-        public synchronized void methodB() {
-            System.out.println("methodB: вывод после блокировки");
-        }
+        wait();
+        Thread.sleep(1000);
 
     }
 }
 
+class Producer implements Runnable{
+    private Store store;
 
+    public void setStore(Store store) {
+        this.store = store;
+    }
 
+    @Override
+    public void run() {
+        while (true){
+            try {
+                store.produce();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
 
+class Consumer implements Runnable{
+    private Store store;
 
+    public void setStore(Store store) {
+        this.store = store;
+    }
 
+    @Override
+    public void run() {
+        while (true){
+            try {
+                store.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
+    }
+}
