@@ -1,70 +1,46 @@
 package com.company;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class Main {
+     volatile static boolean isExit = false;
 
     public static void main(String[] args) {
-        Lock lock = new ReentrantLock();
-
-        MyThread1 thread1 = new MyThread1(lock);
-        MyThread2 thread2 = new MyThread2(lock);
-
-
-        thread1.start();
-        thread2.start();
+        new MyThreadWritable().start();
+        new MyThreadReadable().start();
     }
 
-}
-
-class MyThread1 extends Thread {
-
-    Lock lock;
-
-    public MyThread1(Lock lock) {
-        this.lock = lock;
-    }
-
-    @Override
-    public void run() {
-        lock.lock();
-        System.out.println(getName() + " lock");
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        lock.unlock();
-        System.out.println(getName() + " unlock");
-
-
-    }
-}
-
-class MyThread2 extends Thread {
-    Lock lock;
-
-    public MyThread2(Lock lock) {
-        this.lock = lock;
-    }
-
-    @Override
-    public void run() {
-        while (true) {
-            if (lock.tryLock()) {
-                System.out.println(getName() + "  get lock");
-            } else {
-                System.out.println(getName() + " can not get lock");
-            }
+    static class MyThreadWritable extends Thread {
+        @Override
+        public void run() {
             try {
-                Thread.sleep(50);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            isExit = true;
         }
-
     }
+
+    static class MyThreadReadable extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                //Без volatile isExit не прочитается нормально
+                if(isExit){
+                    System.out.println("isExit");
+                }
+                //если раскоментировать данный код, то программа работает нормально и без volatile. странно.
+//                else {
+//                    System.out.println("!!!");
+//                }
+            }
+        }
+    }
+
 }
+
+
+
+
+
 
 
